@@ -18,11 +18,14 @@ async function fetchExternalData() {
   // Example: const res = await fetch('https://bible-api.com/?random=verse');
   // For this reliable set-and-forget, we'll fetch a random Proverb or Psalm.
   const randomChapter = Math.floor(Math.random() * 31) + 1;
-  const response = await fetch(`https://bible-api.com/proverbs+${randomChapter}:1`);
+  const url = `https://bible-api.com/proverbs+${randomChapter}:1`;
+  console.log(`[API CALL] Requesting Bible Verse: ${url}`);
+  const response = await fetch(url);
   if (!response.ok) {
     throw new Error('Failed to fetch from Bible API');
   }
   const data = await response.json();
+  console.log(`[API SUCCESS] Received Verse: ${data.reference} - "${data.text.trim().substring(0, 30)}..."`);
   
   // Mocks for Commentary and History as free reliable APIs for these are scarce
   // In a real scenario, you'd fetch these from other endpoints
@@ -79,12 +82,16 @@ async function run() {
         History: ${rawData.history}
       `;
 
+      console.log(`[GEMINI PROMPT] Sending data to Gemini:\n${prompt}`);
+
       const response = await ai.models.generateContent({
           model: 'gemini-2.5-flash',
           contents: prompt,
       });
 
       const responseText = response.text.trim();
+      console.log(`[GEMINI SUCCESS] Raw AI Response:\n${responseText}`);
+      
       // Simple parse attempt, assuming it returns a raw array or markdown array
       let cleanedText = responseText;
       if (cleanedText.startsWith('```json')) {
