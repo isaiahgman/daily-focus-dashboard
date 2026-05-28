@@ -1,6 +1,8 @@
 name: Daily Focus Aggregation and Deploy
 
 on:
+  push:
+    branches: [ "main" ]
   schedule:
     # Runs at 6:00 AM UTC daily
     - cron: '0 6 * * *'
