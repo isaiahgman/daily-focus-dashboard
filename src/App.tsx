@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import data from './data/data.json';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -6,33 +6,29 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, Circle, Flame, BookOpen, Clock, Lightbulb } from 'lucide-react';
 
 function App() {
-  const [isReflected, setIsReflected] = useState(false);
-  const [streak, setStreak] = useState(0);
+  const [isReflected, setIsReflected] = useState(() => {
+    return localStorage.getItem('lastReflectedDate') === new Date().toDateString();
+  });
 
-  useEffect(() => {
-    // Streak Logic
+  const [streak, setStreak] = useState(() => {
     const today = new Date().toDateString();
     const lastReflectedDate = localStorage.getItem('lastReflectedDate');
-    let currentStreak = parseInt(localStorage.getItem('streak') || '0', 10);
+    const currentStreak = parseInt(localStorage.getItem('streak') || '0', 10);
 
     if (lastReflectedDate === today) {
-      setIsReflected(true);
-      setStreak(currentStreak);
+      return currentStreak;
     } else if (lastReflectedDate) {
-      // Check if it was yesterday
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
       if (lastReflectedDate === yesterday.toDateString()) {
-        setStreak(currentStreak);
+        return currentStreak;
       } else {
-        // Missed a day
-        setStreak(0);
         localStorage.setItem('streak', '0');
+        return 0;
       }
-    } else {
-      setStreak(0);
     }
-  }, []);
+    return 0;
+  });
 
   const handleReflect = () => {
     if (isReflected) return;
