@@ -56,7 +56,7 @@ function App() {
         <div className="flex justify-between items-end mb-8">
           <div>
             <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-500 pb-2">
-              Daily Focus
+              Godly Encouragement
             </h1>
             <p className="text-muted-foreground font-medium">
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
@@ -165,7 +165,7 @@ function App() {
         {/* Footer */}
         <footer className="text-center text-xs text-muted-foreground pb-8">
           <Separator className="mb-4 opacity-50" />
-          <p>Daily Focus Dashboard • Auto-generated daily</p>
+          <p>Godly Encouragement Dashboard • Auto-generated daily</p>
           {data.isRawMode && (
             <p className="text-orange-500 mt-2 font-medium flex items-center justify-center space-x-1">
               <span>⚠️ Served in Offline/Raw Mode</span>
