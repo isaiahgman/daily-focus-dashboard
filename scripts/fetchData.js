@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI } from '@google/genai';
+import { BIBLE_BOOKS } from './bibleData.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,32 +11,37 @@ const DATA_FILE = path.join(__dirname, '../src/data/data.json');
 const FALLBACK_FILE = path.join(__dirname, '../src/data/fallback_data.json');
 
 // Initialize Gemini API
-// GitHub Actions will provide GEMINI_API_KEY as an env variable
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || 'dummy' });
 
 async function fetchExternalData() {
-  // Simulating fetching a verse. In production, this would ping a free API like bible-api.com
-  // Example: const res = await fetch('https://bible-api.com/?random=verse');
-  // For this reliable set-and-forget, we'll fetch a random Proverb or Psalm.
-  const randomChapter = Math.floor(Math.random() * 31) + 1;
-  const url = `https://bible-api.com/proverbs+${randomChapter}:1`;
-  console.log(`[API CALL] Requesting Bible Verse: ${url}`);
+  const bookList = Object.keys(BIBLE_BOOKS);
+  const randomBook = bookList[Math.floor(Math.random() * bookList.length)];
+  const maxChapters = BIBLE_BOOKS[randomBook];
+  const randomChapter = Math.floor(Math.random() * maxChapters) + 1;
+
+  const url = `https://bible-api.com/${encodeURIComponent(randomBook)}+${randomChapter}?translation=kjv`;
+  console.log(`[API CALL] Requesting Bible Chapter: ${url}`);
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error('Failed to fetch from Bible API');
+    throw new Error(`Failed to fetch from Bible API: ${response.statusText}`);
   }
   const data = await response.json();
-  console.log(`[API SUCCESS] Received Verse: ${data.reference} - "${data.text.trim().substring(0, 30)}..."`);
+  const verses = data.verses;
   
-  // Mocks for Commentary and History as free reliable APIs for these are scarce
-  // In a real scenario, you'd fetch these from other endpoints
+  if (!verses || verses.length === 0) {
+    throw new Error(`No verses returned for ${randomBook} ${randomChapter}`);
+  }
+
+  // Pick a random verse from the chapter
+  const randomVerseIndex = Math.floor(Math.random() * verses.length);
+  const verse = verses[randomVerseIndex];
+  console.log(`[API SUCCESS] Selected: ${verse.book_name} ${verse.chapter}:${verse.verse}`);
+
   return {
     verse: {
-      reference: data.reference,
-      text: data.text.trim()
-    },
-    commentary: "A powerful reminder of ancient wisdom applicable to modern life. Proverbs often highlights the duality of human choices: the path of wisdom versus the path of folly.",
-    history: "The Book of Proverbs is a collection of biblical wisdom literature, traditionally attributed to King Solomon of Israel in the 10th century BC, though it likely contains contributions from various authors over centuries."
+      reference: `${verse.book_name} ${verse.chapter}:${verse.verse}`,
+      text: verse.text.trim()
+    }
   };
 }
 
@@ -44,6 +50,8 @@ async function run() {
   let rawData = null;
   let isRawMode = false;
   let takeaways = [];
+  let commentary = "";
+  let history = "";
 
   try {
     console.log("Fetching external APIs...");
@@ -58,69 +66,97 @@ async function run() {
         commentary: fallbackData.commentary,
         history: fallbackData.history
       };
-      isRawMode = true; // Still marking as raw if primary failed and we had to fallback
+      isRawMode = true;
     } catch (fallbackError) {
       console.error("Fallback also failed!", fallbackError.message);
-      process.exit(1); // Abort action if both fail
+      process.exit(1);
     }
   }
 
-  // Attempt to use Gemini for summaries
+  // Attempt to use Gemini for dynamic commentary, history, and takeaways
   if (!process.env.GEMINI_API_KEY) {
-    console.log("No GEMINI_API_KEY found, bypassing AI summary.");
+    console.log("No GEMINI_API_KEY found, bypassing AI generation.");
     isRawMode = true;
+    commentary = rawData.commentary || "A powerful reminder of faith and encouragement for our daily journey.";
+    history = rawData.history || "This scripture has encouraged readers for generations.";
+    takeaways = [
+      "Focus on the wisdom of the text.",
+      "Consider its historical weight.",
+      "Reflect on its application today."
+    ];
   } else {
     try {
-      console.log("Generating AI takeaways with Gemini...");
+      console.log("Generating AI content with Gemini...");
       const prompt = `
-        Analyze the following verse, commentary, and historical context.
-        Extract exactly 3 concise, modern, and highly actionable takeaways for a daily godly encouragement dashboard.
-        Format the output strictly as a JSON array of 3 strings. Do not include markdown formatting or the word JSON.
-        
-        Verse (${rawData.verse.reference}): ${rawData.verse.text}
-        Commentary: ${rawData.commentary}
-        History: ${rawData.history}
+        Analyze the following verse (King James Version):
+        Reference: ${rawData.verse.reference}
+        Verse text: ${rawData.verse.text}
+
+        Generate the dynamic content for a daily encouragement dashboard.
       `;
 
-      console.log(`[GEMINI PROMPT] Sending data to Gemini:\n${prompt}`);
+      console.log(`[GEMINI PROMPT] Sending data to Gemini for reference: ${rawData.verse.reference}`);
 
       const response = await ai.models.generateContent({
           model: 'gemini-2.5-flash',
           contents: prompt,
+          config: {
+            responseMimeType: 'application/json',
+            responseJsonSchema: {
+              type: 'object',
+              properties: {
+                takeaways: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Exactly 3 concise, modern, and highly actionable takeaways for the user.'
+                },
+                commentary: {
+                  type: 'string',
+                  description: 'A brief, encouraging, and modern theological commentary on this specific verse.'
+                },
+                history: {
+                  type: 'string',
+                  description: 'Interesting historical or cultural context about the book or chapter of this verse.'
+                }
+              },
+              required: ['takeaways', 'commentary', 'history']
+            }
+          }
       });
 
       const responseText = response.text.trim();
-      console.log(`[GEMINI SUCCESS] Raw AI Response:\n${responseText}`);
+      console.log(`[GEMINI SUCCESS] Received structured AI response`);
       
-      // Simple parse attempt, assuming it returns a raw array or markdown array
-      let cleanedText = responseText;
-      if (cleanedText.startsWith('```json')) {
-          cleanedText = cleanedText.replace(/```json/g, '').replace(/```/g, '').trim();
-      }
-      takeaways = JSON.parse(cleanedText);
+      const parsed = JSON.parse(responseText);
+      takeaways = parsed.takeaways;
+      commentary = parsed.commentary;
+      history = parsed.history;
     } catch (error) {
       console.error("Gemini API failed or rate-limited:", error.message);
-      isRawMode = true; // Fallback to Raw Mode
+      isRawMode = true;
+      commentary = rawData.commentary || "A powerful reminder of faith and encouragement for our daily journey.";
+      history = rawData.history || "This scripture has encouraged readers for generations.";
+      takeaways = [
+        "Focus on the wisdom of the text.",
+        "Consider its historical weight.",
+        "Reflect on its application today."
+      ];
     }
   }
 
   const finalOutput = {
     date: new Date().toISOString().split('T')[0],
     verse: rawData.verse,
-    commentary: rawData.commentary,
-    history: rawData.history,
-    takeaways: takeaways.length > 0 ? takeaways : [
-        "Focus on the wisdom of the text.",
-        "Consider its historical weight.",
-        "Reflect on its application today."
-    ],
+    commentary: commentary,
+    history: history,
+    takeaways: takeaways,
     isRawMode: isRawMode
   };
 
   // Final Validation
   if (!finalOutput.verse || !finalOutput.verse.text) {
     console.error("Critical Failure: Final assembled object is null or invalid.");
-    process.exit(1); // Abort GitHub Action
+    process.exit(1);
   }
 
   // Write to data.json
@@ -128,4 +164,10 @@ async function run() {
   console.log("Successfully generated src/data/data.json");
 }
 
-run();
+// Export functions for unit testing
+export { fetchExternalData, BIBLE_BOOKS, run, DATA_FILE, FALLBACK_FILE };
+
+// Direct execution guard
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  run();
+}
