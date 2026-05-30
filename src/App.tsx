@@ -124,7 +124,7 @@ function App() {
               {themeMode === 'light' ? <Moon size={18} /> : <Sun size={18} />}
             </Button>
             
-            <div className="flex items-center space-x-1 text-orange-500 font-semibold bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20">
+            <div className="flex items-center space-x-2 text-orange-500 font-semibold bg-orange-500/10 px-5 py-2 rounded-full border border-orange-500/20 shadow-sm transition-all duration-300 hover:bg-orange-500/15">
               <Flame size={18} />
               <span>{streak} Day Streak</span>
             </div>
