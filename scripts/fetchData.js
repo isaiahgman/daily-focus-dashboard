@@ -13,6 +13,46 @@ const FALLBACK_FILE = path.join(__dirname, '../src/data/fallback_data.json');
 // Initialize Gemini API
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || 'dummy' });
 
+// Curated set of premium CSS gradient themes
+const GRADIENT_THEMES = [
+  {
+    name: "Morning Grace",
+    theme: "from-amber-500/20 via-orange-600/10 to-violet-800/20",
+    border: "border-orange-500/20",
+    text: "text-orange-400 font-semibold"
+  },
+  {
+    name: "Living Waters",
+    theme: "from-blue-600/25 via-cyan-600/15 to-emerald-800/20",
+    border: "border-cyan-500/20",
+    text: "text-cyan-400 font-semibold"
+  },
+  {
+    name: "Sovereign Gold",
+    theme: "from-yellow-600/15 via-amber-600/15 to-stone-900/40",
+    border: "border-amber-500/20",
+    text: "text-amber-400 font-semibold"
+  },
+  {
+    name: "Peaceful Twilight",
+    theme: "from-indigo-600/25 via-purple-600/15 to-pink-800/20",
+    border: "border-purple-500/20",
+    text: "text-purple-400 font-semibold"
+  },
+  {
+    name: "Living Hope",
+    theme: "from-emerald-500/15 via-teal-600/15 to-emerald-950/40",
+    border: "border-emerald-500/20",
+    text: "text-emerald-400 font-semibold"
+  },
+  {
+    name: "Royal Purity",
+    theme: "from-rose-500/25 via-purple-600/15 to-slate-900/30",
+    border: "border-rose-500/20",
+    text: "text-rose-400 font-semibold"
+  }
+];
+
 async function fetchExternalData() {
   const bookList = Object.keys(BIBLE_BOOKS);
   const randomBook = bookList[Math.floor(Math.random() * bookList.length)];
@@ -45,14 +85,44 @@ async function fetchExternalData() {
   };
 }
 
+async function fetchWikipediaEvents() {
+  const today = new Date();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  const url = `https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/events/${mm}/${dd}`;
+  
+  console.log(`[API CALL] Requesting Wikipedia On-This-Day: ${url}`);
+  const response = await fetch(url, {
+    headers: {
+      'User-Agent': 'GodlyEncouragementBot/1.0 (isaiah@example.com)'
+    }
+  });
+
+  if (!response.ok) {
+    console.warn(`[API WARN] Failed to fetch Wikipedia events: ${response.statusText}`);
+    return [];
+  }
+
+  const data = await response.json();
+  if (data && data.events && data.events.length > 0) {
+    // Select up to 10 random events to keep the prompt size reasonable
+    const shuffled = data.events.sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, 10).map(e => `${e.year}: ${e.text}`);
+  }
+  return [];
+}
+
 async function run() {
   console.log("Starting Daily Godly Encouragement Data Aggregation...");
   let rawData = null;
   let isRawMode = false;
+  let wikiEvents = [];
   let takeaways = [];
   let commentary = "";
   let history = "";
+  let wordStudy = {};
 
+  // 1. Fetch Scripture
   try {
     console.log("Fetching external APIs...");
     rawData = await fetchExternalData();
@@ -73,26 +143,64 @@ async function run() {
     }
   }
 
-  // Attempt to use Gemini for dynamic commentary, history, and takeaways
+  // 2. Fetch Wikipedia Events
+  try {
+    wikiEvents = await fetchWikipediaEvents();
+  } catch (error) {
+    console.warn("Wikipedia API failed, proceeding without historical date context:", error.message);
+  }
+
+  // 3. Select theme
+  const theme = GRADIENT_THEMES[Math.floor(Math.random() * GRADIENT_THEMES.length)];
+
+  // 4. Generate AI Devotional Content
   if (!process.env.GEMINI_API_KEY) {
     console.log("No GEMINI_API_KEY found, bypassing AI generation.");
     isRawMode = true;
     commentary = rawData.commentary || "A powerful reminder of faith and encouragement for our daily journey.";
     history = rawData.history || "This scripture has encouraged readers for generations.";
     takeaways = [
-      "Focus on the wisdom of the text.",
-      "Consider its historical weight.",
-      "Reflect on its application today."
+      "Focus on the Lord Jesus Christ and His grace.",
+      "Explore the scriptures with a prayerful heart.",
+      "Apply these eternal truths to your walk today."
     ];
+    wordStudy = {
+      originalWord: "ἀγάπη",
+      transliteration: "agape",
+      language: "Greek",
+      definition: "Sacrificial, unconditional love; the love of God for man, which serves as the ultimate model for Christian fellowship."
+    };
   } else {
     try {
       console.log("Generating AI content with Gemini...");
       const prompt = `
-        Analyze the following verse (King James Version):
-        Reference: ${rawData.verse.reference}
-        Verse text: ${rawData.verse.text}
+        You are a Bible study companion designed for exploration and synthesis.
 
-        Generate the dynamic content for a daily encouragement dashboard.
+        Input Verse:
+        Reference: ${rawData.verse.reference}
+        Text (King James Version): ${rawData.verse.text}
+
+        Today's Date: ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+        Today's Wikipedia Historical Events:
+        ${JSON.stringify(wikiEvents, null, 2)}
+
+        Core Rules:
+        1. Primary Version: Use the English Standard Version (ESV) as the default text. Provide the text of the verse rewritten in the ESV as esvVerseText.
+        2. Cross-Reference: When helpful for nuance in the commentary, reference the Amplified Bible, CSB, or KJV.
+        3. No Preaching: Do not purely lecture on doctrine. Help the user explore the text, find connections, and synthesize insights.
+        4. Key Influences: Prioritize the perspectives and writings of the following men (and their direct co-workers who were in agreement) to guide your commentary, insights, and takeaways:
+           - Bakht Singh
+           - Watchman Nee
+           - Stephen Kaung
+           - Dana Congdon
+           - Lance Lambert
+           - T. Austin-Sparks
+           - A.W. Tozer
+           - C.H. Mackintosh
+           - Charles Stanley
+        5. Christ-centered: Ultimately point the takeaways, commentary, and lexicon study to the Lord Jesus Christ.
+        6. Historical Context: In your history field, integrate the historical background of the verse/book with a creative connection to one of today's Wikipedia events. Show how God's hand is visible throughout history.
+        7. Word Study: Identify one key theological word in the verse, find its original language script (Greek or Hebrew), its transliteration, and its original meaning.
       `;
 
       console.log(`[GEMINI PROMPT] Sending data to Gemini for reference: ${rawData.verse.reference}`);
@@ -105,21 +213,35 @@ async function run() {
             responseJsonSchema: {
               type: 'object',
               properties: {
+                esvVerseText: {
+                  type: 'string',
+                  description: 'The text of the verse rewritten in the English Standard Version (ESV).'
+                },
                 takeaways: {
                   type: 'array',
                   items: { type: 'string' },
-                  description: 'Exactly 3 concise, modern, and highly actionable takeaways for the user.'
+                  description: 'Exactly 3 concise, modern, and highly actionable takeaways pointing to the Lord Jesus Christ.'
                 },
                 commentary: {
                   type: 'string',
-                  description: 'A brief, encouraging, and modern theological commentary on this specific verse.'
+                  description: 'A encouraging theological commentary on this verse, drawing from the key influences mentioned in the rules and pointing to the Lord Jesus.'
                 },
                 history: {
                   type: 'string',
-                  description: 'Interesting historical or cultural context about the book or chapter of this verse.'
+                  description: 'Interesting context connecting the history of the verse/book with one of today\'s Wikipedia events.'
+                },
+                wordStudy: {
+                  type: 'object',
+                  properties: {
+                    originalWord: { type: 'string', description: 'The original word in Greek/Hebrew script (e.g. πίστις).' },
+                    transliteration: { type: 'string', description: 'The transliterated English representation of the word (e.g. pistis).' },
+                    language: { type: 'string', description: 'Whether the word is "Greek" or "Hebrew".' },
+                    definition: { type: 'string', description: 'The root meaning, translation, and spiritual nuance of the word pointing to Christ.' }
+                  },
+                  required: ['originalWord', 'transliteration', 'language', 'definition']
                 }
               },
-              required: ['takeaways', 'commentary', 'history']
+              required: ['esvVerseText', 'takeaways', 'commentary', 'history', 'wordStudy']
             }
           }
       });
@@ -128,19 +250,29 @@ async function run() {
       console.log(`[GEMINI SUCCESS] Received structured AI response`);
       
       const parsed = JSON.parse(responseText);
+      
+      // Update KJV verse text in the payload with the rewritten ESV verse text
+      rawData.verse.text = parsed.esvVerseText;
       takeaways = parsed.takeaways;
       commentary = parsed.commentary;
       history = parsed.history;
+      wordStudy = parsed.wordStudy;
     } catch (error) {
       console.error("Gemini API failed or rate-limited:", error.message);
       isRawMode = true;
       commentary = rawData.commentary || "A powerful reminder of faith and encouragement for our daily journey.";
       history = rawData.history || "This scripture has encouraged readers for generations.";
       takeaways = [
-        "Focus on the wisdom of the text.",
-        "Consider its historical weight.",
-        "Reflect on its application today."
+        "Focus on the Lord Jesus Christ and His grace.",
+        "Explore the scriptures with a prayerful heart.",
+        "Apply these eternal truths to your walk today."
       ];
+      wordStudy = {
+        originalWord: "ἀγάπη",
+        transliteration: "agape",
+        language: "Greek",
+        definition: "Sacrificial, unconditional love; the love of God for man, which serves as the ultimate model for Christian fellowship."
+      };
     }
   }
 
@@ -150,6 +282,8 @@ async function run() {
     commentary: commentary,
     history: history,
     takeaways: takeaways,
+    wordStudy: wordStudy,
+    theme: theme,
     isRawMode: isRawMode
   };
 
@@ -164,8 +298,7 @@ async function run() {
   console.log("Successfully generated src/data/data.json");
 }
 
-// Export functions for unit testing
-export { fetchExternalData, BIBLE_BOOKS, run, DATA_FILE, FALLBACK_FILE };
+export { fetchExternalData, fetchWikipediaEvents, BIBLE_BOOKS, run, DATA_FILE, FALLBACK_FILE };
 
 // Direct execution guard
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

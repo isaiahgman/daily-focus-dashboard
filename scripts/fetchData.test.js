@@ -1,15 +1,22 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
-import { fetchExternalData, run } from './fetchData.js';
+import { fetchExternalData, fetchWikipediaEvents, run } from './fetchData.js';
 
 // Mock @google/genai module
 const { mockGenerateContent } = vi.hoisted(() => {
   return {
     mockGenerateContent: vi.fn().mockResolvedValue({
       text: JSON.stringify({
+        esvVerseText: "Rewritten ESV verse text.",
         takeaways: ["Mock Takeaway 1", "Mock Takeaway 2", "Mock Takeaway 3"],
         commentary: "Mock theological commentary.",
-        history: "Mock historical context."
+        history: "Mock historical context connecting verse with Wikipedia event.",
+        wordStudy: {
+          originalWord: "πίστις",
+          transliteration: "pistis",
+          language: "Greek",
+          definition: "Faith, trust, belief."
+        }
       })
     })
   };
@@ -58,7 +65,6 @@ describe('fetchData script', () => {
 
   describe('fetchExternalData', () => {
     it('successfully fetches a random verse from bible-api.com', async () => {
-      // Mock successful fetch response
       const mockApiResponse = {
         verses: [
           {
@@ -101,22 +107,67 @@ describe('fetchData script', () => {
     });
   });
 
-  describe('run function', () => {
-    it('runs successfully when API and Gemini calls succeed', async () => {
-      const mockApiResponse = {
-        verses: [
-          {
-            book_name: "Psalms",
-            chapter: 23,
-            verse: 1,
-            text: "The LORD is my shepherd; I shall not want.\n"
-          }
+  describe('fetchWikipediaEvents', () => {
+    it('successfully fetches events from Wikipedia REST API', async () => {
+      const mockWikiResponse = {
+        events: [
+          { year: 1911, text: "The first Indianapolis 500 begins." },
+          { year: 1431, text: "Joan of Arc is burned at the stake." }
         ]
       };
 
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
         ok: true,
-        json: async () => mockApiResponse
+        json: async () => mockWikiResponse
+      }));
+
+      const result = await fetchWikipediaEvents();
+
+      expect(fetch).toHaveBeenCalled();
+      expect(result.length).toBe(2);
+      expect(result).toContain("1911: The first Indianapolis 500 begins.");
+    });
+
+    it('returns an empty array and logs warning if fetch fails', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: false,
+        statusText: "Bad Gateway"
+      }));
+
+      const result = await fetchWikipediaEvents();
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('run function', () => {
+    it('runs successfully when API and Gemini calls succeed', async () => {
+      // Mock fetch to handle both Bible API and Wikipedia events
+      vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url) => {
+        if (url.includes('bible-api.com')) {
+          return {
+            ok: true,
+            json: async () => ({
+              verses: [
+                {
+                  book_name: "Psalms",
+                  chapter: 23,
+                  verse: 1,
+                  text: "The LORD is my shepherd; I shall not want.\n"
+                }
+              ]
+            })
+          };
+        } else if (url.includes('api.wikimedia.org')) {
+          return {
+            ok: true,
+            json: async () => ({
+              events: [
+                { year: 1911, text: "The first Indianapolis 500 begins." }
+              ]
+            })
+          };
+        }
+        return { ok: false, statusText: "Not Found" };
       }));
 
       await run();
@@ -127,13 +178,17 @@ describe('fetchData script', () => {
       
       const parsedData = JSON.parse(dataString);
       expect(parsedData.verse.reference).toBe("Psalms 23:1");
+      // Verify KJV text was overwritten by ESV text from Gemini mock
+      expect(parsedData.verse.text).toBe("Rewritten ESV verse text.");
       expect(parsedData.commentary).toBe("Mock theological commentary.");
-      expect(parsedData.takeaways).toEqual(["Mock Takeaway 1", "Mock Takeaway 2", "Mock Takeaway 3"]);
+      expect(parsedData.history).toBe("Mock historical context connecting verse with Wikipedia event.");
+      expect(parsedData.wordStudy.originalWord).toBe("πίστις");
+      expect(parsedData.theme).toBeDefined();
       expect(parsedData.isRawMode).toBe(false);
     });
 
-    it('falls back to local data when Bible API fails', async () => {
-      // Simulate fetch failure
+    it('falls back to local data and empty events when external APIs fail', async () => {
+      // Simulate fetch failures
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
         ok: false,
         statusText: "Bad Gateway"
@@ -150,21 +205,29 @@ describe('fetchData script', () => {
       expect(parsedData.isRawMode).toBe(true);
     });
 
-    it('enters raw mode and uses generic takeaways if Gemini fails', async () => {
-      const mockApiResponse = {
-        verses: [
-          {
-            book_name: "Psalms",
-            chapter: 23,
-            verse: 1,
-            text: "The LORD is my shepherd; I shall not want.\n"
-          }
-        ]
-      };
-
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => mockApiResponse
+    it('enters raw mode and uses generic takeaways/lexicon if Gemini fails', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url) => {
+        if (url.includes('bible-api.com')) {
+          return {
+            ok: true,
+            json: async () => ({
+              verses: [
+                {
+                  book_name: "Psalms",
+                  chapter: 23,
+                  verse: 1,
+                  text: "The LORD is my shepherd; I shall not want.\n"
+                }
+              ]
+            })
+          };
+        } else if (url.includes('api.wikimedia.org')) {
+          return {
+            ok: true,
+            json: async () => ({ events: [] })
+          };
+        }
+        return { ok: false, statusText: "Not Found" };
       }));
 
       // Make Gemini call reject/throw error
@@ -177,8 +240,8 @@ describe('fetchData script', () => {
       const parsedData = JSON.parse(dataString);
 
       expect(parsedData.isRawMode).toBe(true);
-      // Fallback takeaways should be used
-      expect(parsedData.takeaways[0]).toBe("Focus on the wisdom of the text.");
+      expect(parsedData.takeaways[0]).toBe("Focus on the Lord Jesus Christ and His grace.");
+      expect(parsedData.wordStudy.originalWord).toBe("ἀγάπη");
     });
   });
 });
