@@ -1,9 +1,35 @@
 import { useState } from 'react';
-import data from './data/data.json';
+import rawData from './data/data.json';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Circle, Flame, BookOpen, Clock, Lightbulb } from 'lucide-react';
+import { CheckCircle, Circle, Flame, BookOpen, Clock, Lightbulb, Languages } from 'lucide-react';
+
+interface DevotionalData {
+  date: string;
+  verse: {
+    reference: string;
+    text: string;
+  };
+  commentary: string;
+  history: string;
+  takeaways: string[];
+  isRawMode: boolean;
+  theme?: {
+    name: string;
+    theme: string;
+    border: string;
+    text: string;
+  };
+  wordStudy?: {
+    originalWord: string;
+    transliteration: string;
+    language: string;
+    definition: string;
+  };
+}
+
+const data = rawData as unknown as DevotionalData;
 
 function App() {
   const [isReflected, setIsReflected] = useState(() => {
@@ -44,6 +70,14 @@ function App() {
     localStorage.setItem('lastReflectedDate', today);
   };
 
+  // Safe checks for the new JSON schema (with fallback supports)
+  const theme = data.theme || {
+    name: "Default Grace",
+    theme: "from-primary/20 via-blue-500/10 to-transparent",
+    border: "border-primary/20",
+    text: "text-primary font-semibold"
+  };
+
   return (
     <div className="min-h-screen bg-background p-4 sm:p-8 flex justify-center items-start pt-12 sm:pt-24 font-sans">
       <div className="w-full max-w-2xl space-y-6">
@@ -51,7 +85,7 @@ function App() {
         {/* Header Section */}
         <div className="flex justify-between items-end mb-8">
           <div>
-            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-500 pb-2">
+            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-500 pb-2 animate-gradient">
               Godly Encouragement
             </h1>
             <p className="text-muted-foreground font-medium">
@@ -66,13 +100,13 @@ function App() {
           </div>
         </div>
 
-        {/* Verse Card */}
-        <Card className="border-primary/20 shadow-lg shadow-primary/5 glass-card relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
+        {/* Verse Card (applying dynamic theme gradients) */}
+        <Card className={`border-primary/20 shadow-xl shadow-primary/5 glass-card relative overflow-hidden bg-gradient-to-br ${theme.theme}`}>
+          <div className={`absolute top-0 left-0 w-1.5 h-full ${theme.border}`} />
           <CardHeader>
-            <CardTitle className="text-xl flex items-center space-x-2 text-primary">
+            <CardTitle className={`text-xl flex items-center space-x-2 ${theme.text}`}>
               <BookOpen size={20} />
-              <span>{data.verse.reference}</span>
+              <span>{data.verse.reference} (ESV)</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -102,6 +136,37 @@ function App() {
                   </li>
                 ))}
               </ul>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Original language Word Study Card */}
+        {data.wordStudy && data.wordStudy.originalWord && (
+          <Card className="border-border bg-card/50 backdrop-blur-sm relative overflow-hidden">
+            <div className={`absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r ${theme.theme}`} />
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base text-muted-foreground flex items-center justify-between">
+                <span className="flex items-center space-x-2">
+                  <Languages size={18} className="text-blue-500" />
+                  <span>Original Word Study ({data.wordStudy.language})</span>
+                </span>
+                <span className="text-xs uppercase px-2 py-0.5 rounded-full border border-border bg-card/80 text-muted-foreground">
+                  Lexicon
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-baseline space-x-3">
+                <span className="text-3xl font-serif text-foreground font-semibold">
+                  {data.wordStudy.originalWord}
+                </span>
+                <span className="text-sm italic text-muted-foreground">
+                  ({data.wordStudy.transliteration})
+                </span>
+              </div>
+              <p className="text-sm text-foreground/80 leading-relaxed">
+                {data.wordStudy.definition}
+              </p>
             </CardContent>
           </Card>
         )}
