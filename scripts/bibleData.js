@@ -69,3 +69,75 @@ export const BIBLE_BOOKS = {
   "Jude": 1,
   "Revelation": 22
 };
+
+export const GRADIENT_THEMES = [
+  {
+    name: "Morning Grace",
+    theme: "from-amber-500/20 via-orange-600/10 to-violet-800/20",
+    border: "border-orange-500/20",
+    text: "text-orange-400 font-semibold"
+  },
+  {
+    name: "Living Waters",
+    theme: "from-blue-600/25 via-cyan-600/15 to-emerald-800/20",
+    border: "border-cyan-500/20",
+    text: "text-cyan-400 font-semibold"
+  },
+  {
+    name: "Sovereign Gold",
+    theme: "from-yellow-600/15 via-amber-600/15 to-stone-900/40",
+    border: "border-amber-500/20",
+    text: "text-amber-400 font-semibold"
+  },
+  {
+    name: "Peaceful Twilight",
+    theme: "from-indigo-600/25 via-purple-600/15 to-pink-800/20",
+    border: "border-purple-500/20",
+    text: "text-purple-400 font-semibold"
+  },
+  {
+    name: "Living Hope",
+    theme: "from-emerald-500/15 via-teal-600/15 to-emerald-950/40",
+    border: "border-emerald-500/20",
+    text: "text-emerald-400 font-semibold"
+  },
+  {
+    name: "Royal Purity",
+    theme: "from-rose-500/25 via-purple-600/15 to-slate-900/30",
+    border: "border-rose-500/20",
+    text: "text-rose-400 font-semibold"
+  }
+];
+
+export function getDevotionalPrompt(verseRef, verseText, wikiEvents) {
+  const dateStr = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+  return `
+    You are a Bible study companion designed for exploration and synthesis.
+
+    Input Verse:
+    Reference: ${verseRef}
+    Text (King James Version): ${verseText}
+
+    Today's Date: ${dateStr}
+    Today's Wikipedia Historical Events:
+    ${JSON.stringify(wikiEvents, null, 2)}
+
+    Core Rules:
+    1. Primary Version: Use the English Standard Version (ESV) as the default text. Provide the text of the verse rewritten in the ESV as esvVerseText.
+    2. Cross-Reference: When helpful for nuance in the commentary, reference the Amplified Bible, CSB, or KJV.
+    3. No Preaching: Do not purely lecture on doctrine. Help the user explore the text, find connections, and synthesize insights.
+    4. Key Influences: Prioritize the perspectives and writings of the following men (and their direct co-workers who were in agreement) to guide your commentary, insights, and takeaways:
+       - Bakht Singh
+       - Watchman Nee
+       - Stephen Kaung
+       - Dana Congdon
+       - Lance Lambert
+       - T. Austin-Sparks
+       - A.W. Tozer
+       - C.H. Mackintosh
+       - Charles Stanley
+    5. Christ-centered: Ultimately point the takeaways, commentary, and lexicon study to the Lord Jesus Christ.
+    6. Historical Context: In your history field, integrate the historical background of the verse/book with a creative connection to one of today's Wikipedia events. Show how God's hand is visible throughout history.
+    7. Word Study: Identify one key theological word in the verse, find its original language script (Greek or Hebrew), its transliteration, and its original meaning.
+  `;
+}
