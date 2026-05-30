@@ -1,15 +1,27 @@
 {
-  "date": "2026-05-28",
+  "date": "2026-05-30",
   "verse": {
-    "reference": "Proverbs 13:1",
-    "text": "A wise son listens to his father’s instruction,\nbut a scoffer doesn’t listen to rebuke."
+    "reference": "Ezekiel 48:15",
+    "text": "And the five thousand, that are left in the breadth over against the five and twenty thousand, shall be a profane\nplace for the city, for dwelling, and for suburbs: and the city shall be in the midst thereof."
   },
-  "commentary": "A powerful reminder of ancient wisdom applicable to modern life. Proverbs often highlights the duality of human choices: the path of wisdom versus the path of folly.",
-  "history": "The Book of Proverbs is a collection of biblical wisdom literature, traditionally attributed to King Solomon of Israel in the 10th century BC, though it likely contains contributions from various authors over centuries.",
+  "commentary": "A powerful reminder of faith and encouragement for our daily journey.",
+  "history": "This scripture has encouraged readers for generations.",
   "takeaways": [
-    "Focus on the wisdom of the text.",
-    "Consider its historical weight.",
-    "Reflect on its application today."
+    "Focus on the Lord Jesus Christ and His grace.",
+    "Explore the scriptures with a prayerful heart.",
+    "Apply these eternal truths to your walk today."
   ],
+  "wordStudy": {
+    "originalWord": "ἀγάπη",
+    "transliteration": "agape",
+    "language": "Greek",
+    "definition": "Sacrificial, unconditional love; the love of God for man, which serves as the ultimate model for Christian fellowship."
+  },
+  "theme": {
+    "name": "Royal Purity",
+    "theme": "from-rose-500/10 via-purple-500/5 to-transparent dark:from-rose-500/25 dark:via-purple-600/15 dark:to-slate-900/30",
+    "border": "border-rose-500/15 dark:border-rose-500/20",
+    "text": "text-rose-700 dark:text-rose-400 font-semibold"
+  },
   "isRawMode": true
 }

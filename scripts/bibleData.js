@@ -73,39 +73,39 @@ export const BIBLE_BOOKS = {
 export const GRADIENT_THEMES = [
   {
     name: "Morning Grace",
-    theme: "from-amber-500/20 via-orange-600/10 to-violet-800/20",
-    border: "border-orange-500/20",
-    text: "text-orange-400 font-semibold"
+    theme: "from-amber-500/10 via-orange-500/5 to-transparent dark:from-amber-500/20 dark:via-orange-600/10 dark:to-violet-800/20",
+    border: "border-orange-500/15 dark:border-orange-500/20",
+    text: "text-orange-700 dark:text-orange-400 font-semibold"
   },
   {
     name: "Living Waters",
-    theme: "from-blue-600/25 via-cyan-600/15 to-emerald-800/20",
-    border: "border-cyan-500/20",
-    text: "text-cyan-400 font-semibold"
+    theme: "from-blue-500/10 via-cyan-500/5 to-transparent dark:from-blue-600/25 dark:via-cyan-600/15 dark:to-emerald-800/20",
+    border: "border-cyan-500/15 dark:border-cyan-500/20",
+    text: "text-cyan-700 dark:text-cyan-400 font-semibold"
   },
   {
     name: "Sovereign Gold",
-    theme: "from-yellow-600/15 via-amber-600/15 to-stone-900/40",
-    border: "border-amber-500/20",
-    text: "text-amber-400 font-semibold"
+    theme: "from-yellow-500/10 via-amber-500/5 to-transparent dark:from-yellow-600/15 dark:via-amber-600/15 dark:to-stone-900/40",
+    border: "border-amber-500/15 dark:border-amber-500/20",
+    text: "text-amber-700 dark:text-amber-400 font-semibold"
   },
   {
     name: "Peaceful Twilight",
-    theme: "from-indigo-600/25 via-purple-600/15 to-pink-800/20",
-    border: "border-purple-500/20",
-    text: "text-purple-400 font-semibold"
+    theme: "from-indigo-500/10 via-purple-500/5 to-transparent dark:from-indigo-600/25 dark:via-purple-600/15 dark:to-pink-800/20",
+    border: "border-purple-500/15 dark:border-purple-500/20",
+    text: "text-purple-700 dark:text-purple-400 font-semibold"
   },
   {
     name: "Living Hope",
-    theme: "from-emerald-500/15 via-teal-600/15 to-emerald-950/40",
-    border: "border-emerald-500/20",
-    text: "text-emerald-400 font-semibold"
+    theme: "from-emerald-500/10 via-teal-500/5 to-transparent dark:from-emerald-500/15 dark:via-teal-600/15 dark:to-emerald-950/40",
+    border: "border-emerald-500/15 dark:border-emerald-500/20",
+    text: "text-emerald-700 dark:text-emerald-400 font-semibold"
   },
   {
     name: "Royal Purity",
-    theme: "from-rose-500/25 via-purple-600/15 to-slate-900/30",
-    border: "border-rose-500/20",
-    text: "text-rose-400 font-semibold"
+    theme: "from-rose-500/10 via-purple-500/5 to-transparent dark:from-rose-500/25 dark:via-purple-600/15 dark:to-slate-900/30",
+    border: "border-rose-500/15 dark:border-rose-500/20",
+    text: "text-rose-700 dark:text-rose-400 font-semibold"
   }
 ];
 
