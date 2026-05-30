@@ -34,5 +34,6 @@ The project is structured as follows:
   - `## Changes`: A bulleted list detailing specific modifications.
   - Do not use other heading hierarchies or alternative names for these sections.
 - **Agent specific workflow**:
-  - **Always check PR status**: Agents MUST check if an existing Pull Request is already merged (e.g. using `gh pr view <number>`) before pushing new commits or updating descriptions. 
-  - If the PR is merged, the agent MUST fetch origin main, create a new branch from `main`, and open a new Pull Request. Do not push to or update dead, merged PRs.
+  - **Always check PR status**: Before running `git push` or making changes to an existing feature branch, agents MUST check if the associated Pull Request has already been merged or closed (e.g. using `gh pr view <number>` or checking `gh pr list --state all`).
+    - **CRITICAL**: Do NOT commit to or push new commits to a dead, merged, or closed branch/PR.
+    - **Resolution**: If the PR is already merged/closed, the agent MUST fetch origin main, create a new branch from `main`, cherry-pick/re-apply the changes, and open a new Pull Request.
