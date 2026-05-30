@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import rawData from './data/data.json';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Circle, Flame, BookOpen, Clock, Lightbulb, Languages } from 'lucide-react';
+import { CheckCircle, Circle, Flame, BookOpen, Clock, Lightbulb, Languages, Sun, Moon } from 'lucide-react';
 
 interface DevotionalData {
   date: string;
@@ -32,6 +32,27 @@ interface DevotionalData {
 const data = rawData as unknown as DevotionalData;
 
 function App() {
+  const [themeMode, setThemeMode] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return systemPrefersDark ? 'dark' : 'light';
+  });
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (themeMode === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    localStorage.setItem('theme', themeMode);
+  }, [themeMode]);
+
+  const toggleTheme = () => {
+    setThemeMode((prev) => (prev === 'light' ? 'dark' : 'light'));
+  };
+
   const [isReflected, setIsReflected] = useState(() => {
     return localStorage.getItem('lastReflectedDate') === new Date().toDateString();
   });
@@ -73,8 +94,8 @@ function App() {
   // Safe checks for the new JSON schema (with fallback supports)
   const theme = data.theme || {
     name: "Default Grace",
-    theme: "from-primary/20 via-blue-500/10 to-transparent",
-    border: "border-primary/20",
+    theme: "from-primary/10 via-blue-500/5 to-transparent dark:from-primary/20 dark:via-blue-500/10 dark:to-transparent",
+    border: "border-primary/15 dark:border-primary/20",
     text: "text-primary font-semibold"
   };
 
@@ -92,7 +113,17 @@ function App() {
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </p>
           </div>
-          <div className="flex flex-col items-end">
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-full w-10 h-10 border-border bg-card/50 hover:bg-accent text-foreground transition-all duration-300"
+              onClick={toggleTheme}
+              aria-label="Toggle theme"
+            >
+              {themeMode === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+            </Button>
+            
             <div className="flex items-center space-x-1 text-orange-500 font-semibold bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20">
               <Flame size={18} />
               <span>{streak} Day Streak</span>
