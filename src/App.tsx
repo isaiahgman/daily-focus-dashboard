@@ -104,7 +104,7 @@ function App() {
       <div className="w-full max-w-2xl space-y-6">
         
         {/* Header Section */}
-        <div className="flex justify-between items-end mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <div>
             <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-500 pb-2 animate-gradient">
               Godly Encouragement
@@ -113,18 +113,18 @@ function App() {
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </p>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 shrink-0 self-start sm:self-auto">
             <Button
               variant="outline"
               size="icon"
-              className="rounded-full w-10 h-10 border-border bg-card/50 hover:bg-accent text-foreground transition-all duration-300"
+              className="rounded-full w-10 h-10 border-border bg-card/50 hover:bg-accent text-foreground transition-all duration-300 shrink-0"
               onClick={toggleTheme}
               aria-label="Toggle theme"
             >
               {themeMode === 'light' ? <Moon size={18} /> : <Sun size={18} />}
             </Button>
             
-            <div className="flex items-center space-x-2 text-orange-500 font-semibold bg-orange-500/10 px-5 py-2 rounded-full border border-orange-500/20 shadow-sm transition-all duration-300 hover:bg-orange-500/15">
+            <div className="flex items-center space-x-2 text-orange-500 font-semibold bg-orange-500/10 px-5 py-2 rounded-full border border-orange-500/20 shadow-sm transition-all duration-300 hover:bg-orange-500/15 whitespace-nowrap shrink-0">
               <Flame size={18} />
               <span>{streak} Day Streak</span>
             </div>
