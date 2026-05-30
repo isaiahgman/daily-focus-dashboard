@@ -132,7 +132,7 @@ function App() {
         </div>
 
         {/* Verse Card (applying dynamic theme gradients) */}
-        <Card className={`border-primary/20 shadow-xl shadow-primary/5 glass-card relative overflow-hidden bg-gradient-to-br ${theme.theme}`}>
+        <Card className={`border-primary/20 shadow-xl shadow-primary/5 glass-card relative overflow-hidden bg-gradient-to-br ${theme.theme} transition-all duration-300 hover:-translate-y-1 hover:shadow-primary/10`}>
           <div className={`absolute top-0 left-0 w-1.5 h-full ${theme.border}`} />
           <CardHeader>
             <CardTitle className={`text-xl flex items-center space-x-2 ${theme.text}`}>
@@ -149,7 +149,7 @@ function App() {
 
         {/* Actionable Takeaways */}
         {data.takeaways && data.takeaways.length > 0 && (
-          <Card className="border-border bg-card/50 backdrop-blur-sm">
+          <Card className="border-border bg-card/50 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-blue-500/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center space-x-2 text-blue-500">
                 <Lightbulb size={20} />
@@ -173,7 +173,7 @@ function App() {
 
         {/* Original language Word Study Card */}
         {data.wordStudy && data.wordStudy.originalWord && (
-          <Card className="border-border bg-card/50 backdrop-blur-sm relative overflow-hidden">
+          <Card className="border-border bg-card/50 backdrop-blur-sm relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-primary/20">
             <div className={`absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r ${theme.theme}`} />
             <CardHeader className="pb-2">
               <CardTitle className="text-base text-muted-foreground flex items-center justify-between">
@@ -204,7 +204,7 @@ function App() {
 
         {/* Commentary & History */}
         <div className="flex flex-col gap-6">
-          <Card className="border-border bg-card/50 backdrop-blur-sm">
+          <Card className="border-border bg-card/50 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-primary/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-base text-muted-foreground flex items-center space-x-2">
                 <span>Commentary</span>
@@ -217,7 +217,7 @@ function App() {
             </CardContent>
           </Card>
 
-          <Card className="border-border bg-card/50 backdrop-blur-sm">
+          <Card className="border-border bg-card/50 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-blue-500/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-base text-muted-foreground flex items-center space-x-2">
                 <Clock size={16} />
