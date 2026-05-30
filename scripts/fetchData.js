@@ -40,7 +40,7 @@ async function fetchExternalData() {
 }
 
 async function run() {
-  console.log("Starting Daily Focus Data Aggregation...");
+  console.log("Starting Daily Godly Encouragement Data Aggregation...");
   let rawData = null;
   let isRawMode = false;
   let takeaways = [];
@@ -74,7 +74,7 @@ async function run() {
       console.log("Generating AI takeaways with Gemini...");
       const prompt = `
         Analyze the following verse, commentary, and historical context.
-        Extract exactly 3 concise, modern, and highly actionable takeaways for a daily focus dashboard.
+        Extract exactly 3 concise, modern, and highly actionable takeaways for a daily godly encouragement dashboard.
         Format the output strictly as a JSON array of 3 strings. Do not include markdown formatting or the word JSON.
         
         Verse (${rawData.verse.reference}): ${rawData.verse.text}
