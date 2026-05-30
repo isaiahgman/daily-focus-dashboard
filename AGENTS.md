@@ -10,7 +10,7 @@ The project is structured as follows:
 * **Data Layer (`src/data/data.json`)**: Serves as the static database for the app. The React client imports this file directly, allowing instantaneous loads without network loading states.
 * **Daily Focus Aggregator (`scripts/fetchData.js`)**: A Node.js script executed daily by GitHub Actions. It:
   1. Fetches a random verse from `bible-api.com`.
-  2. Uses the Google GenAI SDK (`gemini-2.5-flash`) to generate 3 concise, modern, and highly actionable takeaways.
+  2. Uses the Google GenAI SDK (`gemini-3.5-flash`) to generate 3 concise, modern, and highly actionable takeaways.
   3. Falls back to a localized raw mode using `src/data/fallback_data.json` if APIs or keys fail.
   4. Overwrites `src/data/data.json` with the updated payload.
 * **Workflows (`.github/workflows/`)**:
