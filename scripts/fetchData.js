@@ -45,38 +45,12 @@ async function fetchExternalData() {
   };
 }
 
-async function fetchWikipediaEvents() {
-  const today = new Date();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
-  const url = `https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/events/${mm}/${dd}`;
-  
-  console.log(`[API CALL] Requesting Wikipedia On-This-Day: ${url}`);
-  const response = await fetch(url, {
-    headers: {
-      'User-Agent': 'GodlyEncouragementBot/1.0 (isaiah@example.com)'
-    }
-  });
 
-  if (!response.ok) {
-    console.warn(`[API WARN] Failed to fetch Wikipedia events: ${response.statusText}`);
-    return [];
-  }
-
-  const data = await response.json();
-  if (data && data.events && data.events.length > 0) {
-    // Select up to 10 random events to keep the prompt size reasonable
-    const shuffled = data.events.sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, 10).map(e => `${e.year}: ${e.text}`);
-  }
-  return [];
-}
 
 async function run() {
   console.log("Starting Daily Godly Encouragement Data Aggregation...");
   let rawData = null;
   let isRawMode = false;
-  let wikiEvents = [];
   let takeaways = [];
   let commentary = "";
   let history = "";
@@ -103,13 +77,6 @@ async function run() {
     }
   }
 
-  // 2. Fetch Wikipedia Events
-  try {
-    wikiEvents = await fetchWikipediaEvents();
-  } catch (error) {
-    console.warn("Wikipedia API failed, proceeding without historical date context:", error.message);
-  }
-
   // 3. Select theme
   const theme = GRADIENT_THEMES[Math.floor(Math.random() * GRADIENT_THEMES.length)];
 
@@ -133,7 +100,7 @@ async function run() {
   } else {
     try {
       console.log("Generating AI content with Gemini...");
-      const prompt = getDevotionalPrompt(rawData.verse.reference, rawData.verse.text, wikiEvents);
+      const prompt = getDevotionalPrompt(rawData.verse.reference, rawData.verse.text);
 
       console.log(`[GEMINI PROMPT] Sending data to Gemini for reference: ${rawData.verse.reference}`);
 
@@ -230,7 +197,7 @@ async function run() {
   console.log("Successfully generated src/data/data.json");
 }
 
-export { fetchExternalData, fetchWikipediaEvents, BIBLE_BOOKS, run, DATA_FILE, FALLBACK_FILE };
+export { fetchExternalData, BIBLE_BOOKS, run, DATA_FILE, FALLBACK_FILE };
 
 // Direct execution guard
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
