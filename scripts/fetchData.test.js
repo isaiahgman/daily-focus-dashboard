@@ -1,6 +1,6 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
-import { fetchExternalData, fetchWikipediaEvents, run } from './fetchData.js';
+import { fetchExternalData, run } from './fetchData.js';
 
 // Mock @google/genai module
 const { mockGenerateContent } = vi.hoisted(() => {
@@ -10,7 +10,7 @@ const { mockGenerateContent } = vi.hoisted(() => {
         esvVerseText: "Rewritten ESV verse text.",
         takeaways: ["Mock Takeaway 1", "Mock Takeaway 2", "Mock Takeaway 3"],
         commentary: "Mock theological commentary.",
-        history: "Mock historical context connecting verse with Wikipedia event.",
+        history: "Mock historical context for the verse.",
         wordStudy: {
           originalWord: "πίστις",
           transliteration: "pistis",
@@ -107,41 +107,11 @@ describe('fetchData script', () => {
     });
   });
 
-  describe('fetchWikipediaEvents', () => {
-    it('successfully fetches events from Wikipedia REST API', async () => {
-      const mockWikiResponse = {
-        events: [
-          { year: 1911, text: "The first Indianapolis 500 begins." },
-          { year: 1431, text: "Joan of Arc is burned at the stake." }
-        ]
-      };
 
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => mockWikiResponse
-      }));
-
-      const result = await fetchWikipediaEvents();
-
-      expect(fetch).toHaveBeenCalled();
-      expect(result.length).toBe(2);
-      expect(result).toContain("1911: The first Indianapolis 500 begins.");
-    });
-
-    it('returns an empty array and logs warning if fetch fails', async () => {
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-        ok: false,
-        statusText: "Bad Gateway"
-      }));
-
-      const result = await fetchWikipediaEvents();
-      expect(result).toEqual([]);
-    });
-  });
 
   describe('run function', () => {
     it('runs successfully when API and Gemini calls succeed', async () => {
-      // Mock fetch to handle both Bible API and Wikipedia events
+      // Mock fetch to handle Bible API
       vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url) => {
         if (url.includes('bible-api.com')) {
           return {
@@ -154,15 +124,6 @@ describe('fetchData script', () => {
                   verse: 1,
                   text: "The LORD is my shepherd; I shall not want.\n"
                 }
-              ]
-            })
-          };
-        } else if (url.includes('api.wikimedia.org')) {
-          return {
-            ok: true,
-            json: async () => ({
-              events: [
-                { year: 1911, text: "The first Indianapolis 500 begins." }
               ]
             })
           };
@@ -181,13 +142,13 @@ describe('fetchData script', () => {
       // Verify KJV text was overwritten by ESV text from Gemini mock
       expect(parsedData.verse.text).toBe("Rewritten ESV verse text.");
       expect(parsedData.commentary).toBe("Mock theological commentary.");
-      expect(parsedData.history).toBe("Mock historical context connecting verse with Wikipedia event.");
+      expect(parsedData.history).toBe("Mock historical context for the verse.");
       expect(parsedData.wordStudy.originalWord).toBe("πίστις");
       expect(parsedData.theme).toBeDefined();
       expect(parsedData.isRawMode).toBe(false);
     });
 
-    it('falls back to local data and empty events when external APIs fail', async () => {
+    it('falls back to local data when Bible API fails', async () => {
       // Simulate fetch failures
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
         ok: false,
@@ -220,11 +181,6 @@ describe('fetchData script', () => {
                 }
               ]
             })
-          };
-        } else if (url.includes('api.wikimedia.org')) {
-          return {
-            ok: true,
-            json: async () => ({ events: [] })
           };
         }
         return { ok: false, statusText: "Not Found" };
